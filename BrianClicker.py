@@ -24,24 +24,6 @@ def resource_path(filename):
 
 
 # ============================================================
-# APPLICATION ID
-# ============================================================
-
-try:
-    shell32 = ctypes.WinDLL(
-        "shell32",
-        use_last_error=True
-    )
-
-    shell32.SetCurrentProcessExplicitAppUserModelID(
-        "BrianClicker.BrianClicker"
-    )
-
-except Exception:
-    pass
-
-
-# ============================================================
 # APPEARANCE
 # ============================================================
 
@@ -55,7 +37,7 @@ BORDER = "#202020"
 
 
 # ============================================================
-# WINDOWS API
+# WINDOWS DLL
 # ============================================================
 
 user32 = ctypes.WinDLL(
@@ -70,7 +52,7 @@ kernel32 = ctypes.WinDLL(
 
 
 # ============================================================
-# WINDOWS CONSTANTS
+# WINDOW CONSTANTS
 # ============================================================
 
 GWL_STYLE = -16
@@ -94,20 +76,52 @@ SWP_NOACTIVATE = 0x0010
 HWND_TOP = 0
 SW_SHOW = 5
 
-# Mouse
+
+# ============================================================
+# MOUSE CONSTANTS
+# ============================================================
+
+VK_LBUTTON = 0x01
+
+WH_MOUSE_LL = 14
+
+WM_LBUTTONDOWN = 0x0201
+WM_LBUTTONUP = 0x0202
+
+LLMHF_INJECTED = 0x00000001
+
 MOUSEEVENTF_LEFTDOWN = 0x0002
 MOUSEEVENTF_LEFTUP = 0x0004
 
-# Keyboard
-KEYEVENTF_KEYUP = 0x0002
 
-# Keyboard hook
+# ============================================================
+# KEYBOARD CONSTANTS
+# ============================================================
+
 WH_KEYBOARD_LL = 13
 
 WM_KEYDOWN = 0x0100
 WM_SYSKEYDOWN = 0x0104
 
 LLKHF_INJECTED = 0x00000010
+
+KEYEVENTF_KEYUP = 0x0002
+
+VK_R = 0x52
+
+VK_6 = 0x36
+VK_7 = 0x37
+VK_8 = 0x38
+VK_9 = 0x39
+VK_0 = 0x30
+
+VK_CAPSLOCK = 0x14
+VK_F8 = 0x77
+
+
+# ============================================================
+# BASIC TYPES
+# ============================================================
 
 LRESULT = ctypes.c_ssize_t
 
@@ -120,14 +134,18 @@ user32.GetWindowLongW.argtypes = [
     wintypes.HWND,
     ctypes.c_int
 ]
+
 user32.GetWindowLongW.restype = ctypes.c_long
+
 
 user32.SetWindowLongW.argtypes = [
     wintypes.HWND,
     ctypes.c_int,
     ctypes.c_long
 ]
+
 user32.SetWindowLongW.restype = ctypes.c_long
+
 
 user32.SetWindowPos.argtypes = [
     wintypes.HWND,
@@ -138,18 +156,17 @@ user32.SetWindowPos.argtypes = [
     ctypes.c_int,
     ctypes.c_uint
 ]
+
 user32.SetWindowPos.restype = wintypes.BOOL
+
 
 user32.ShowWindow.argtypes = [
     wintypes.HWND,
     ctypes.c_int
 ]
+
 user32.ShowWindow.restype = wintypes.BOOL
 
-user32.GetAsyncKeyState.argtypes = [
-    ctypes.c_int
-]
-user32.GetAsyncKeyState.restype = ctypes.c_short
 
 user32.SetWindowsHookExW.argtypes = [
     ctypes.c_int,
@@ -157,12 +174,16 @@ user32.SetWindowsHookExW.argtypes = [
     wintypes.HINSTANCE,
     wintypes.DWORD
 ]
+
 user32.SetWindowsHookExW.restype = wintypes.HHOOK
+
 
 user32.UnhookWindowsHookEx.argtypes = [
     wintypes.HHOOK
 ]
+
 user32.UnhookWindowsHookEx.restype = wintypes.BOOL
+
 
 user32.CallNextHookEx.argtypes = [
     wintypes.HHOOK,
@@ -170,7 +191,9 @@ user32.CallNextHookEx.argtypes = [
     wintypes.WPARAM,
     wintypes.LPARAM
 ]
+
 user32.CallNextHookEx.restype = LRESULT
+
 
 user32.GetMessageW.argtypes = [
     ctypes.POINTER(wintypes.MSG),
@@ -178,26 +201,35 @@ user32.GetMessageW.argtypes = [
     wintypes.UINT,
     wintypes.UINT
 ]
+
 user32.GetMessageW.restype = ctypes.c_int
+
 
 user32.TranslateMessage.argtypes = [
     ctypes.POINTER(wintypes.MSG)
 ]
+
 user32.TranslateMessage.restype = wintypes.BOOL
+
 
 user32.DispatchMessageW.argtypes = [
     ctypes.POINTER(wintypes.MSG)
 ]
+
 user32.DispatchMessageW.restype = LRESULT
+
 
 user32.PostQuitMessage.argtypes = [
     ctypes.c_int
 ]
+
 user32.PostQuitMessage.restype = None
+
 
 kernel32.GetModuleHandleW.argtypes = [
     wintypes.LPCWSTR
 ]
+
 kernel32.GetModuleHandleW.restype = wintypes.HMODULE
 
 
@@ -216,6 +248,26 @@ class KBDLLHOOKSTRUCT(ctypes.Structure):
     ]
 
 
+# ============================================================
+# MOUSE STRUCTURE
+# ============================================================
+
+class MSLLHOOKSTRUCT(ctypes.Structure):
+
+    _fields_ = [
+        ("pt_x", wintypes.LONG),
+        ("pt_y", wintypes.LONG),
+        ("mouseData", wintypes.DWORD),
+        ("flags", wintypes.DWORD),
+        ("time", wintypes.DWORD),
+        ("dwExtraInfo", ctypes.c_void_p),
+    ]
+
+
+# ============================================================
+# HOOK TYPES
+# ============================================================
+
 HOOKPROC = ctypes.WINFUNCTYPE(
     LRESULT,
     ctypes.c_int,
@@ -225,39 +277,78 @@ HOOKPROC = ctypes.WINFUNCTYPE(
 
 
 # ============================================================
-# VIRTUAL KEYS
+# INPUT STRUCTURES
 # ============================================================
 
-VK_LBUTTON = 0x01
-VK_R = 0x52
+INPUT_MOUSE = 0
 
-VK_6 = 0x36
-VK_7 = 0x37
-VK_8 = 0x38
-VK_9 = 0x39
-VK_0 = 0x30
+if ctypes.sizeof(ctypes.c_void_p) == 8:
+    ULONG_PTR = ctypes.c_ulonglong
+else:
+    ULONG_PTR = ctypes.c_ulong
 
-VK_CAPSLOCK = 0x14
-VK_F8 = 0x77
+
+class MOUSEINPUT(ctypes.Structure):
+
+    _fields_ = [
+        ("dx", wintypes.LONG),
+        ("dy", wintypes.LONG),
+        ("mouseData", wintypes.DWORD),
+        ("dwFlags", wintypes.DWORD),
+        ("time", wintypes.DWORD),
+        ("dwExtraInfo", ULONG_PTR),
+    ]
+
+
+class INPUT_UNION(ctypes.Union):
+
+    _fields_ = [
+        ("mi", MOUSEINPUT),
+    ]
+
+
+class INPUT(ctypes.Structure):
+
+    _anonymous_ = ("u",)
+
+    _fields_ = [
+        ("type", wintypes.DWORD),
+        ("u", INPUT_UNION),
+    ]
+
+
+user32.SendInput.argtypes = [
+    wintypes.UINT,
+    ctypes.POINTER(INPUT),
+    ctypes.c_int
+]
+
+user32.SendInput.restype = wintypes.UINT
 
 
 # ============================================================
-# STATE
+# GLOBAL STATE
 # ============================================================
 
 running = True
+
 enabled = False
-physical_lmb = False
+
+lmb_held = False
 
 expanded = False
+
 cps_value = 12
 
 waiting_for_key = None
 
+drag_x = 0
+drag_y = 0
+
 state_lock = threading.Lock()
-click_event = threading.Event()
 
 click_times = deque()
+
 click_times_lock = threading.Lock()
 
 
@@ -266,11 +357,31 @@ click_times_lock = threading.Lock()
 # ============================================================
 
 keybinds = {
-    "6": {"input": None, "output": VK_6},
-    "7": {"input": None, "output": VK_7},
-    "8": {"input": None, "output": VK_8},
-    "9": {"input": None, "output": VK_9},
-    "0": {"input": None, "output": VK_0},
+
+    "6": {
+        "input": None,
+        "output": VK_6
+    },
+
+    "7": {
+        "input": None,
+        "output": VK_7
+    },
+
+    "8": {
+        "input": None,
+        "output": VK_8
+    },
+
+    "9": {
+        "input": None,
+        "output": VK_9
+    },
+
+    "0": {
+        "input": None,
+        "output": VK_0
+    }
 }
 
 
@@ -280,80 +391,93 @@ keybinds = {
 
 app = ctk.CTk()
 
-app.title("Brian Clicker")
-app.resizable(False, False)
-app.configure(fg_color=BORDER)
+app.title(
+    "Brian Clicker"
+)
+
+app.resizable(
+    False,
+    False
+)
+
+app.configure(
+    fg_color=BORDER
+)
 
 
 # ============================================================
-# BORDERLESS WINDOWS STYLE
+# BORDERLESS WINDOW
 # ============================================================
 
 def remove_windows_titlebar():
 
-    app.update_idletasks()
+    try:
 
-    hwnd = app.winfo_id()
+        app.update_idletasks()
 
-    style = user32.GetWindowLongW(
-        hwnd,
-        GWL_STYLE
-    )
+        hwnd = app.winfo_id()
 
-    ex_style = user32.GetWindowLongW(
-        hwnd,
-        GWL_EXSTYLE
-    )
+        style = user32.GetWindowLongW(
+            hwnd,
+            GWL_STYLE
+        )
 
-    style &= ~WS_CAPTION
-    style &= ~WS_THICKFRAME
-    style &= ~WS_MINIMIZEBOX
-    style &= ~WS_MAXIMIZEBOX
-    style &= ~WS_SYSMENU
+        ex_style = user32.GetWindowLongW(
+            hwnd,
+            GWL_EXSTYLE
+        )
 
-    # Keep the application in the Windows taskbar.
-    ex_style &= ~WS_EX_TOOLWINDOW
-    ex_style |= WS_EX_APPWINDOW
+        style &= ~WS_CAPTION
+        style &= ~WS_THICKFRAME
+        style &= ~WS_MINIMIZEBOX
+        style &= ~WS_MAXIMIZEBOX
+        style &= ~WS_SYSMENU
 
-    user32.SetWindowLongW(
-        hwnd,
-        GWL_STYLE,
-        style
-    )
+        ex_style &= ~WS_EX_TOOLWINDOW
+        ex_style |= WS_EX_APPWINDOW
 
-    user32.SetWindowLongW(
-        hwnd,
-        GWL_EXSTYLE,
-        ex_style
-    )
+        user32.SetWindowLongW(
+            hwnd,
+            GWL_STYLE,
+            style
+        )
 
-    user32.SetWindowPos(
-        hwnd,
-        HWND_TOP,
-        0,
-        0,
-        0,
-        0,
-        SWP_NOMOVE
-        | SWP_NOSIZE
-        | SWP_NOZORDER
-        | SWP_NOACTIVATE
-        | SWP_FRAMECHANGED
-    )
+        user32.SetWindowLongW(
+            hwnd,
+            GWL_EXSTYLE,
+            ex_style
+        )
 
-    user32.ShowWindow(
-        hwnd,
-        SW_SHOW
-    )
+        user32.SetWindowPos(
+            hwnd,
+            HWND_TOP,
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE
+            | SWP_NOSIZE
+            | SWP_NOZORDER
+            | SWP_NOACTIVATE
+            | SWP_FRAMECHANGED
+        )
+
+        user32.ShowWindow(
+            hwnd,
+            SW_SHOW
+        )
+
+    except Exception as e:
+
+        print(
+            "Borderless error:",
+            e
+        )
 
 
 # ============================================================
 # DRAGGING
 # ============================================================
-
-drag_x = 0
-drag_y = 0
-
 
 def start_drag(event):
 
@@ -389,12 +513,16 @@ def drag_window(event):
 
 
 # ============================================================
-# POWER
+# POWER VISUAL
 # ============================================================
 
 def update_power_visual():
 
-    if enabled:
+    with state_lock:
+
+        current = enabled
+
+    if current:
 
         power_button.configure(
             fg_color=WHITE,
@@ -411,15 +539,19 @@ def update_power_visual():
         )
 
 
+# ============================================================
+# POWER TOGGLE
+# ============================================================
+
 def toggle_power():
 
     global enabled
 
     with state_lock:
+
         enabled = not enabled
 
     update_power_visual()
-    click_event.set()
 
 
 # ============================================================
@@ -430,7 +562,9 @@ def toggle_overlay():
 
     app.attributes(
         "-topmost",
-        bool(overlay_var.get())
+        bool(
+            overlay_var.get()
+        )
     )
 
 
@@ -443,6 +577,7 @@ def resize_window():
     app.update_idletasks()
 
     width = 400
+
     height = app.winfo_reqheight()
 
     app.geometry(
@@ -492,35 +627,55 @@ def update_cps(value):
 
     global cps_value
 
-    cps_value = int(float(value))
+    cps_value = int(
+        float(value)
+    )
 
     cps_value_label.configure(
         text=f"{cps_value} CPS"
     )
 
-    click_event.set()
-
 
 # ============================================================
-# SEND CLICK
+# SEND LEFT CLICK
 # ============================================================
 
 def send_left_click():
 
-    user32.mouse_event(
-        MOUSEEVENTF_LEFTDOWN,
-        0,
-        0,
-        0,
-        0
+    down = INPUT(
+        type=INPUT_MOUSE,
+        mi=MOUSEINPUT(
+            dx=0,
+            dy=0,
+            mouseData=0,
+            dwFlags=MOUSEEVENTF_LEFTDOWN,
+            time=0,
+            dwExtraInfo=0
+        )
     )
 
-    user32.mouse_event(
-        MOUSEEVENTF_LEFTUP,
-        0,
-        0,
-        0,
-        0
+    up = INPUT(
+        type=INPUT_MOUSE,
+        mi=MOUSEINPUT(
+            dx=0,
+            dy=0,
+            mouseData=0,
+            dwFlags=MOUSEEVENTF_LEFTUP,
+            time=0,
+            dwExtraInfo=0
+        )
+    )
+
+    user32.SendInput(
+        1,
+        ctypes.byref(down),
+        ctypes.sizeof(INPUT)
+    )
+
+    user32.SendInput(
+        1,
+        ctypes.byref(up),
+        ctypes.sizeof(INPUT)
     )
 
 
@@ -546,32 +701,131 @@ def send_key(vk):
 
 
 # ============================================================
-# MOUSE MONITOR
+# PHYSICAL MOUSE HOOK
 # ============================================================
 
-def mouse_state_monitor():
+@HOOKPROC
+def mouse_hook(
+    nCode,
+    wParam,
+    lParam
+):
 
-    global physical_lmb
+    global lmb_held
 
-    previous = False
+    if nCode >= 0:
+
+        try:
+
+            data = ctypes.cast(
+                lParam,
+                ctypes.POINTER(
+                    MSLLHOOKSTRUCT
+                )
+            ).contents
+
+            injected = bool(
+                data.flags
+                & LLMHF_INJECTED
+            )
+
+            # Ignore our own SendInput clicks.
+            if not injected:
+
+                if wParam == WM_LBUTTONDOWN:
+
+                    with state_lock:
+
+                        lmb_held = True
+
+                elif wParam == WM_LBUTTONUP:
+
+                    with state_lock:
+
+                        lmb_held = False
+
+        except Exception:
+            pass
+
+    return user32.CallNextHookEx(
+        None,
+        nCode,
+        wParam,
+        lParam
+    )
+
+
+# ============================================================
+# MOUSE HOOK THREAD
+# ============================================================
+
+def mouse_hook_thread():
+
+    module_handle = (
+        kernel32.GetModuleHandleW(
+            None
+        )
+    )
+
+    if not module_handle:
+
+        print(
+            "Mouse hook unavailable."
+        )
+
+        return
+
+    hook = user32.SetWindowsHookExW(
+        WH_MOUSE_LL,
+        mouse_hook,
+        module_handle,
+        0
+    )
+
+    if not hook:
+
+        error = ctypes.get_last_error()
+
+        print(
+            "Mouse hook unavailable."
+        )
+
+        print(
+            f"Windows error: {error}"
+        )
+
+        return
+
+    print(
+        "Mouse hook installed."
+    )
+
+    msg = wintypes.MSG()
 
     while running:
 
-        current = bool(
-            user32.GetAsyncKeyState(
-                VK_LBUTTON
-            ) & 0x8000
+        result = user32.GetMessageW(
+            ctypes.byref(msg),
+            None,
+            0,
+            0
         )
 
-        if current != previous:
+        if result <= 0:
 
-            with state_lock:
-                physical_lmb = current
+            break
 
-            previous = current
-            click_event.set()
+        user32.TranslateMessage(
+            ctypes.byref(msg)
+        )
 
-        time.sleep(0.001)
+        user32.DispatchMessageW(
+            ctypes.byref(msg)
+        )
+
+    user32.UnhookWindowsHookEx(
+        hook
+    )
 
 
 # ============================================================
@@ -586,33 +840,91 @@ def autoclicker():
 
         with state_lock:
 
-            active = (
-                enabled
-                and physical_lmb
+            active = enabled
+
+            held = lmb_held
+
+            current_cps = max(
+                cps_value,
+                1
             )
 
-            current_cps = cps_value
-
-        interval = (
-            1.0
-            / max(current_cps, 1)
-        )
+        # ----------------------------------------------------
+        # CAPS LOCK OFF
+        # ----------------------------------------------------
 
         if not active:
 
-            click_event.wait(0.01)
-            click_event.clear()
-
             next_click = (
                 time.perf_counter()
-                + interval
+                + 0.01
+            )
+
+            time.sleep(
+                0.001
             )
 
             continue
 
+        # ----------------------------------------------------
+        # LMB NOT HELD
+        # ----------------------------------------------------
+
+        if not held:
+
+            next_click = (
+                time.perf_counter()
+                + 0.01
+            )
+
+            time.sleep(
+                0.001
+            )
+
+            continue
+
+        # ----------------------------------------------------
+        # CPS
+        # ----------------------------------------------------
+
+        interval = (
+            1.0
+            / current_cps
+        )
+
         now = time.perf_counter()
 
-        if now < next_click:
+        # ----------------------------------------------------
+        # CLICK
+        # ----------------------------------------------------
+
+        if now >= next_click:
+
+            # Check again immediately before clicking.
+            with state_lock:
+
+                if not enabled or not lmb_held:
+
+                    continue
+
+            send_left_click()
+
+            click_time = (
+                time.perf_counter()
+            )
+
+            with click_times_lock:
+
+                click_times.append(
+                    click_time
+                )
+
+            next_click = (
+                click_time
+                + interval
+            )
+
+        else:
 
             remaining = (
                 next_click
@@ -622,34 +934,15 @@ def autoclicker():
             if remaining > 0.002:
 
                 time.sleep(
-                    remaining - 0.001
+                    remaining
+                    - 0.001
                 )
 
-            continue
+            else:
 
-        send_left_click()
-
-        click_time = time.perf_counter()
-
-        with click_times_lock:
-
-            click_times.append(
-                click_time
-            )
-
-        next_click += interval
-
-        now = time.perf_counter()
-
-        if now > (
-            next_click
-            + interval * 3
-        ):
-
-            next_click = (
-                now
-                + interval
-            )
+                time.sleep(
+                    0.0005
+                )
 
 
 # ============================================================
@@ -661,27 +954,35 @@ def cps_monitor():
     while running:
 
         now = time.perf_counter()
-        cutoff = now - 1.0
+
+        cutoff = (
+            now
+            - 1.0
+        )
 
         with click_times_lock:
 
             while (
                 click_times
-                and click_times[0] < cutoff
+                and
+                click_times[0]
+                < cutoff
             ):
 
                 click_times.popleft()
 
-            live_cps = len(click_times)
+            live_cps = len(
+                click_times
+            )
 
         with state_lock:
 
-            active = (
-                enabled
-                and physical_lmb
-            )
+            active = enabled
 
-        if not active:
+            held = lmb_held
+
+        if not active or not held:
+
             live_cps = 0
 
         try:
@@ -698,7 +999,9 @@ def cps_monitor():
 
             break
 
-        time.sleep(0.1)
+        time.sleep(
+            0.05
+        )
 
 
 # ============================================================
@@ -730,16 +1033,19 @@ def get_key_name(vk):
         0x78: "F9",
         0x79: "F10",
         0x7A: "F11",
-        0x7B: "F12",
+        0x7B: "F12"
     }
 
     if vk in names:
+
         return names[vk]
 
     if 0x30 <= vk <= 0x39:
+
         return chr(vk)
 
     if 0x41 <= vk <= 0x5A:
+
         return chr(vk)
 
     return f"VK {vk}"
@@ -754,14 +1060,23 @@ keybind_buttons = {}
 
 def update_keybind_button(number):
 
-    input_vk = keybinds[number]["input"]
+    input_vk = (
+        keybinds[number]["input"]
+    )
 
     if input_vk is None:
-        text = "UNBOUND"
-    else:
-        text = get_key_name(input_vk)
 
-    keybind_buttons[number].configure(
+        text = "UNBOUND"
+
+    else:
+
+        text = get_key_name(
+            input_vk
+        )
+
+    keybind_buttons[
+        number
+    ].configure(
         text=text
     )
 
@@ -772,7 +1087,9 @@ def begin_key_capture(number):
 
     waiting_for_key = number
 
-    keybind_buttons[number].configure(
+    keybind_buttons[
+        number
+    ].configure(
         text="PRESS KEY..."
     )
 
@@ -801,18 +1118,29 @@ def keyboard_hook(
             lParam
         )
 
-    data = ctypes.cast(
-        lParam,
-        ctypes.POINTER(
-            KBDLLHOOKSTRUCT
+    try:
+
+        data = ctypes.cast(
+            lParam,
+            ctypes.POINTER(
+                KBDLLHOOKSTRUCT
+            )
+        ).contents
+
+    except Exception:
+
+        return user32.CallNextHookEx(
+            None,
+            nCode,
+            wParam,
+            lParam
         )
-    ).contents
 
     vk = data.vkCode
-    flags = data.flags
 
     injected = bool(
-        flags & LLKHF_INJECTED
+        data.flags
+        & LLKHF_INJECTED
     )
 
     is_down = (
@@ -821,81 +1149,106 @@ def keyboard_hook(
         wParam == WM_SYSKEYDOWN
     )
 
-    # --------------------------------------------------------
+    # ========================================================
     # KEY CAPTURE
-    # --------------------------------------------------------
+    # ========================================================
 
     if (
         waiting_for_key is not None
-        and not injected
-        and is_down
+        and
+        not injected
+        and
+        is_down
     ):
 
         number = waiting_for_key
 
         if vk != VK_F8:
 
-            keybinds[number]["input"] = vk
+            keybinds[
+                number
+            ]["input"] = vk
 
         waiting_for_key = None
 
-        app.after(
-            0,
-            lambda n=number:
-            update_keybind_button(n)
-        )
+        try:
+
+            app.after(
+                0,
+                lambda n=number:
+                update_keybind_button(n)
+            )
+
+        except Exception:
+            pass
 
         return 1
 
-    # --------------------------------------------------------
+    # ========================================================
     # CAPS LOCK
-    # --------------------------------------------------------
+    # ========================================================
 
     if (
         vk == VK_CAPSLOCK
-        and not injected
-        and is_down
+        and
+        not injected
+        and
+        is_down
     ):
 
         with state_lock:
+
             enabled = not enabled
 
-        app.after(
-            0,
-            update_power_visual
-        )
+        try:
 
-        click_event.set()
+            app.after(
+                0,
+                update_power_visual
+            )
+
+        except Exception:
+            pass
 
         return 1
 
-    # --------------------------------------------------------
+    # ========================================================
     # R -> 7
-    # --------------------------------------------------------
+    # ========================================================
 
     if (
         vk == VK_R
-        and not injected
-        and is_down
+        and
+        not injected
+        and
+        is_down
     ):
 
-        send_key(VK_7)
+        send_key(
+            VK_7
+        )
 
         return 1
 
-    # --------------------------------------------------------
-    # 6-0 KEYBINDS
-    # --------------------------------------------------------
+    # ========================================================
+    # CONFIGURABLE BINDS
+    # ========================================================
 
     if (
         not injected
-        and is_down
+        and
+        is_down
     ):
 
         for number, bind in keybinds.items():
 
-            input_vk = bind["input"]
-            output_vk = bind["output"]
+            input_vk = (
+                bind["input"]
+            )
+
+            output_vk = (
+                bind["output"]
+            )
 
             if (
                 input_vk is not None
@@ -903,29 +1256,44 @@ def keyboard_hook(
                 vk == input_vk
             ):
 
-                send_key(output_vk)
+                send_key(
+                    output_vk
+                )
 
                 return 1
 
-    # --------------------------------------------------------
+    # ========================================================
     # F8 CLOSE
-    # --------------------------------------------------------
+    # ========================================================
 
     if (
         vk == VK_F8
-        and not injected
-        and is_down
+        and
+        not injected
+        and
+        is_down
     ):
 
         running = False
-        click_event.set()
 
-        user32.PostQuitMessage(0)
+        try:
 
-        app.after(
-            0,
-            shutdown
-        )
+            user32.PostQuitMessage(
+                0
+            )
+
+        except Exception:
+            pass
+
+        try:
+
+            app.after(
+                0,
+                shutdown
+            )
+
+        except Exception:
+            pass
 
         return 1
 
@@ -943,15 +1311,18 @@ def keyboard_hook(
 
 def keyboard_hook_thread():
 
-    global running
-
     module_handle = (
-        kernel32.GetModuleHandleW(None)
+        kernel32.GetModuleHandleW(
+            None
+        )
     )
 
     if not module_handle:
 
-        running = False
+        print(
+            "Keyboard hook unavailable."
+        )
+
         return
 
     hook = user32.SetWindowsHookExW(
@@ -963,8 +1334,21 @@ def keyboard_hook_thread():
 
     if not hook:
 
-        running = False
+        error = ctypes.get_last_error()
+
+        print(
+            "Keyboard hook unavailable."
+        )
+
+        print(
+            f"Windows error: {error}"
+        )
+
         return
+
+    print(
+        "Keyboard hook installed."
+    )
 
     msg = wintypes.MSG()
 
@@ -978,6 +1362,7 @@ def keyboard_hook_thread():
         )
 
         if result <= 0:
+
             break
 
         user32.TranslateMessage(
@@ -991,6 +1376,28 @@ def keyboard_hook_thread():
     user32.UnhookWindowsHookEx(
         hook
     )
+
+
+# ============================================================
+# SHUTDOWN
+# ============================================================
+
+def shutdown():
+
+    global running
+
+    running = False
+
+    with state_lock:
+
+        enabled = False
+
+    try:
+
+        app.destroy()
+
+    except Exception:
+        pass
 
 
 # ============================================================
@@ -1083,7 +1490,7 @@ power_button.grid(
 
 
 # ============================================================
-# CPS LABEL
+# CPS DISPLAY
 # ============================================================
 
 cps_label = ctk.CTkLabel(
@@ -1166,7 +1573,7 @@ name_label.grid(
 
 
 # ============================================================
-# EXPAND BUTTON
+# EXPAND
 # ============================================================
 
 expand_button = ctk.CTkButton(
@@ -1188,7 +1595,7 @@ expand_button.pack(
 
 
 # ============================================================
-# SETTINGS FRAME
+# SETTINGS
 # ============================================================
 
 settings_frame = ctk.CTkFrame(
@@ -1240,7 +1647,9 @@ cps_slider = ctk.CTkSlider(
     command=update_cps
 )
 
-cps_slider.set(12)
+cps_slider.set(
+    12
+)
 
 cps_slider.pack(
     pady=(0, 15)
@@ -1336,7 +1745,7 @@ keybind_frame.pack(
 
 
 # ============================================================
-# R -> 7 GUIDE
+# R -> 7
 # ============================================================
 
 guide_frame = ctk.CTkFrame(
@@ -1406,7 +1815,13 @@ small_keybind_frame.pack(
 )
 
 
-for number in ["6", "7", "8", "9", "0"]:
+for number in [
+    "6",
+    "7",
+    "8",
+    "9",
+    "0"
+]:
 
     row = ctk.CTkFrame(
         small_keybind_frame,
@@ -1463,7 +1878,9 @@ for number in ["6", "7", "8", "9", "0"]:
         padx=(6, 0)
     )
 
-    keybind_buttons[number] = input_button
+    keybind_buttons[
+        number
+    ] = input_button
 
 
 # ============================================================
@@ -1486,8 +1903,8 @@ ctk.CTkLabel(
 
 ctk.CTkLabel(
     settings_frame,
-    text="Caps Lock = Toggle  |  F8 = Close",
-    font=("Arial", 11),
+    text="Hold LMB to autoclick  |  Caps Lock = Toggle  |  F8 = Close",
+    font=("Arial", 10),
     text_color="#777777"
 ).pack(
     pady=(0, 12)
@@ -1495,22 +1912,8 @@ ctk.CTkLabel(
 
 
 # ============================================================
-# SHUTDOWN
+# CLOSE
 # ============================================================
-
-def shutdown():
-
-    global running
-
-    running = False
-    click_event.set()
-
-    try:
-        app.destroy()
-
-    except Exception:
-        pass
-
 
 app.protocol(
     "WM_DELETE_WINDOW",
@@ -1519,7 +1922,7 @@ app.protocol(
 
 
 # ============================================================
-# INITIAL WINDOW
+# INITIAL SIZE
 # ============================================================
 
 app.update_idletasks()
@@ -1530,33 +1933,48 @@ app.geometry(
 
 
 # ============================================================
-# APPLY BORDERLESS STYLE
+# BORDERLESS
 # ============================================================
 
 app.after(
-    100,
+    300,
     remove_windows_titlebar
 )
 
 
 # ============================================================
-# START THREADS
+# START MOUSE HOOK
 # ============================================================
 
 threading.Thread(
-    target=mouse_state_monitor,
+    target=mouse_hook_thread,
     daemon=True
 ).start()
+
+
+# ============================================================
+# START AUTOCLICKER
+# ============================================================
 
 threading.Thread(
     target=autoclicker,
     daemon=True
 ).start()
 
+
+# ============================================================
+# START CPS MONITOR
+# ============================================================
+
 threading.Thread(
     target=cps_monitor,
     daemon=True
 ).start()
+
+
+# ============================================================
+# START KEYBOARD HOOK
+# ============================================================
 
 threading.Thread(
     target=keyboard_hook_thread,
@@ -1576,4 +1994,3 @@ app.mainloop()
 # ============================================================
 
 running = False
-click_event.set()
